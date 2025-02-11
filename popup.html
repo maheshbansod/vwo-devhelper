@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>VWO Account Impersonator</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>VWO Account Impersonator</h1>
+        
+        <!-- New impersonation form -->
+        <div class="form-section">
+            <h2>New Impersonation</h2>
+            <div class="input-group">
+                <input type="text" id="accountId" placeholder="Account ID">
+                <input type="text" id="testapp" placeholder="Testapp Identifier">
+                <input type="text" id="note" placeholder="Add a note (optional)">
+                <button id="impersonate">Impersonate</button>
+                <button id="saveConfig">Save Configuration</button>
+            </div>
+        </div>
+
+        <!-- Saved configurations -->
+        <div class="saved-section">
+            <h2>Saved Configurations</h2>
+            <div id="savedConfigs" class="saved-configs">
+                <!-- Saved configurations will be inserted here -->
+            </div>
+        </div>
+    </div>
+    <script src="popup.js"></script>
+</body>
+</html> 
