@@ -24,6 +24,18 @@ document.addEventListener('DOMContentLoaded', () => {
             const tabId = button.getAttribute('data-tab');
             const tabContent = document.getElementById(tabId + 'Tab');
             tabContent.style.display = 'block';
+
+            // Reset form if switching to new tab
+            if (tabId === 'new') {
+                document.getElementById('accountId').value = '';
+                document.getElementById('testapp').value = '';
+                document.getElementById('note').value = '';
+                
+                const impersonateBtn = document.getElementById('impersonate');
+                impersonateBtn.textContent = 'Impersonate';
+                delete impersonateBtn.dataset.editIndex;
+                impersonateBtn.onclick = handleImpersonation;
+            }
         });
     });
 
@@ -68,6 +80,11 @@ function createConfigElement(config, index) {
     useButton.textContent = 'Use';
     useButton.onclick = () => impersonateSaved(index);
 
+    const editButton = document.createElement('button');
+    editButton.textContent = 'Edit';
+    editButton.className = 'edit-btn';
+    editButton.onclick = () => editConfig(index);
+
     const deleteButton = document.createElement('button');
     deleteButton.textContent = 'Delete';
     deleteButton.className = 'delete-btn';
@@ -79,6 +96,7 @@ function createConfigElement(config, index) {
     }
     
     actions.appendChild(useButton);
+    actions.appendChild(editButton);
     actions.appendChild(deleteButton);
 
     configElement.appendChild(configInfo);
@@ -165,5 +183,64 @@ function filterConfigs(e) {
                        note.includes(searchTerm);
         
         config.classList.toggle('hidden', !matches);
+    });
+}
+
+// Add new edit configuration function
+function editConfig(index) {
+    chrome.storage.sync.get(['configs'], (result) => {
+        const configs = result.configs || [];
+        const config = configs[index];
+        
+        // Switch to new impersonation tab
+        const newTabBtn = document.querySelector('[data-tab="new"]');
+        newTabBtn.click();
+        
+        // Fill in the form with existing values
+        document.getElementById('accountId').value = config.accountId;
+        document.getElementById('testapp').value = config.testapp;
+        document.getElementById('note').value = config.note || '';
+        
+        // Change the impersonate button to update
+        const impersonateBtn = document.getElementById('impersonate');
+        impersonateBtn.textContent = 'Update and impersonate';
+        impersonateBtn.dataset.editIndex = index;
+        
+        // Update the handler
+        impersonateBtn.onclick = () => handleUpdate(index);
+    });
+}
+
+// Add new update handler function
+function handleUpdate(index) {
+    const accountId = document.getElementById('accountId').value.trim();
+    const testapp = document.getElementById('testapp').value.trim();
+    const note = document.getElementById('note').value.trim();
+    
+    if (!accountId || !testapp) {
+        alert('Please enter both Account ID and Testapp identifier');
+        return;
+    }
+
+    chrome.storage.sync.get(['configs'], (result) => {
+        const configs = result.configs || [];
+        configs[index] = { accountId, testapp, note };
+        
+        chrome.storage.sync.set({ configs }, () => {
+            // Reset the form
+            document.getElementById('accountId').value = '';
+            document.getElementById('testapp').value = '';
+            document.getElementById('note').value = '';
+            
+            // Reset the button
+            const impersonateBtn = document.getElementById('impersonate');
+            impersonateBtn.textContent = 'Impersonate';
+            delete impersonateBtn.dataset.editIndex;
+            impersonateBtn.onclick = handleImpersonation;
+            
+            // Switch back to saved tab and reload configs
+            document.querySelector('[data-tab="saved"]').click();
+            loadSavedConfigs();
+        });
     });
 } 

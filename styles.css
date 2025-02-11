@@ -107,6 +107,14 @@ button:hover {
     background: #cc0000;
 }
 
+.edit-btn {
+    background: #ffa500;
+}
+
+.edit-btn:hover {
+    background: #ff8c00;
+}
+
 .tabs {
     display: flex;
     gap: 8px;
