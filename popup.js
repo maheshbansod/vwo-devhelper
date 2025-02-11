@@ -62,45 +62,59 @@ function createConfigElement(config, index) {
     const configElement = document.createElement('div');
     configElement.className = 'saved-config';
 
-    const configInfo = document.createElement('div');
-    configInfo.className = 'config-info';
+    const leftSection = document.createElement('div');
+    leftSection.className = 'left-section';
 
-    const title = document.createElement('div');
-    title.className = 'config-title';
-    title.textContent = `${config.testapp} - Account: ${config.accountId}`;
+    const accountId = document.createElement('div');
+    accountId.className = 'account-id';
+    accountId.textContent = config.accountId;
 
-    const note = document.createElement('div');
-    note.className = 'config-note';
-    note.textContent = config.note || '';
+    leftSection.appendChild(accountId);
+
+    if (config.note) {
+        const note = document.createElement('div');
+        note.className = 'config-note';
+        note.textContent = config.note;
+        leftSection.appendChild(note);
+    }
+
+    const rightSection = document.createElement('div');
+    rightSection.className = 'right-section';
+
+    const testappBadge = document.createElement('div');
+    testappBadge.className = 'testapp-badge';
+    testappBadge.textContent = config.testapp;
 
     const actions = document.createElement('div');
     actions.className = 'config-actions';
 
     const useButton = document.createElement('button');
-    useButton.textContent = 'Use';
+    useButton.innerHTML = '<i class="fas fa-play"></i>';
+    useButton.className = 'icon-button';
+    useButton.title = 'Use';
     useButton.onclick = () => impersonateSaved(index);
 
     const editButton = document.createElement('button');
-    editButton.textContent = 'Edit';
-    editButton.className = 'edit-btn';
+    editButton.innerHTML = '<i class="fas fa-edit"></i>';
+    editButton.className = 'icon-button edit-btn';
+    editButton.title = 'Edit';
     editButton.onclick = () => editConfig(index);
 
     const deleteButton = document.createElement('button');
-    deleteButton.textContent = 'Delete';
-    deleteButton.className = 'delete-btn';
+    deleteButton.innerHTML = '<i class="fas fa-trash"></i>';
+    deleteButton.className = 'icon-button delete-btn';
+    deleteButton.title = 'Delete';
     deleteButton.onclick = () => deleteConfig(index);
 
-    configInfo.appendChild(title);
-    if (config.note) {
-        configInfo.appendChild(note);
-    }
-    
     actions.appendChild(useButton);
     actions.appendChild(editButton);
     actions.appendChild(deleteButton);
 
-    configElement.appendChild(configInfo);
-    configElement.appendChild(actions);
+    rightSection.appendChild(testappBadge);
+    rightSection.appendChild(actions);
+
+    configElement.appendChild(leftSection);
+    configElement.appendChild(rightSection);
 
     return configElement;
 }
@@ -195,8 +209,8 @@ function filterConfigs(e) {
     const configs = document.querySelectorAll('.saved-config');
     
     configs.forEach(config => {
-        const accountId = config.querySelector('.config-title').textContent.toLowerCase();
-        const testapp = config.querySelector('.config-title').textContent.toLowerCase();
+        const accountId = config.querySelector('.account-id').textContent.toLowerCase();
+        const testapp = config.querySelector('.testapp-badge').textContent.toLowerCase();
         const note = config.querySelector('.config-note')?.textContent.toLowerCase() || '';
         
         const matches = accountId.includes(searchTerm) || 
