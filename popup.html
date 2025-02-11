@@ -8,23 +8,32 @@
     <div class="container">
         <h1>VWO Account Impersonator</h1>
         
+        <div class="tabs">
+            <button class="tab-btn active" data-tab="saved">Saved Configurations</button>
+            <button class="tab-btn" data-tab="new">New Impersonation</button>
+        </div>
+
         <!-- New impersonation form -->
-        <div class="form-section">
-            <h2>New Impersonation</h2>
-            <div class="input-group">
-                <input type="text" id="accountId" placeholder="Account ID">
-                <input type="text" id="testapp" placeholder="Testapp Identifier">
-                <input type="text" id="note" placeholder="Add a note (optional)">
-                <button id="impersonate">Impersonate</button>
-                <button id="saveConfig">Save Configuration</button>
+        <div class="tab-content" id="newTab" style="display: none;">
+            <div class="form-section">
+                <div class="input-group">
+                    <input type="text" id="accountId" placeholder="Account ID">
+                    <input type="text" id="testapp" placeholder="Testapp Identifier">
+                    <input type="text" id="note" placeholder="Add a note (optional)">
+                    <button id="impersonate">Impersonate</button>
+                </div>
             </div>
         </div>
 
         <!-- Saved configurations -->
-        <div class="saved-section">
-            <h2>Saved Configurations</h2>
-            <div id="savedConfigs" class="saved-configs">
-                <!-- Saved configurations will be inserted here -->
+        <div class="tab-content active" id="savedTab">
+            <div class="saved-section">
+                <div class="search-container">
+                    <input type="text" id="searchConfigs" placeholder="Search configurations...">
+                </div>
+                <div id="savedConfigs" class="saved-configs">
+                    <!-- Saved configurations will be inserted here -->
+                </div>
             </div>
         </div>
     </div>

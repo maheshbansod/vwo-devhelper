@@ -2,9 +2,33 @@ document.addEventListener('DOMContentLoaded', () => {
     // Load saved configurations
     loadSavedConfigs();
 
-    // Add event listeners
+    // Add event listener for impersonate button
     document.getElementById('impersonate').addEventListener('click', handleImpersonation);
-    document.getElementById('saveConfig').addEventListener('click', saveConfiguration);
+
+    // Set initial tab state
+    document.getElementById('savedTab').style.display = 'block';
+    document.getElementById('newTab').style.display = 'none';
+
+    // Add tab switching functionality
+    const tabButtons = document.querySelectorAll('.tab-btn');
+    tabButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            // Remove active class from all tabs
+            tabButtons.forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.style.display = 'none';
+            });
+
+            // Add active class to clicked tab
+            button.classList.add('active');
+            const tabId = button.getAttribute('data-tab');
+            const tabContent = document.getElementById(tabId + 'Tab');
+            tabContent.style.display = 'block';
+        });
+    });
+
+    // Add search functionality
+    document.getElementById('searchConfigs').addEventListener('input', filterConfigs);
 });
 
 // Load saved configurations from storage
@@ -23,63 +47,87 @@ function loadSavedConfigs() {
 
 // Create HTML element for a saved configuration
 function createConfigElement(config, index) {
-    const div = document.createElement('div');
-    div.className = 'saved-config';
-    div.innerHTML = `
-        <div class="config-info">
-            <div class="config-title">${config.testapp}.vwo.com - Account ${config.accountId}</div>
-            ${config.note ? `<div class="config-note">${config.note}</div>` : ''}
-        </div>
-        <div class="config-actions">
-            <button onclick="impersonateSaved(${index})">Use</button>
-            <button class="delete-btn" onclick="deleteConfig(${index})">Delete</button>
-        </div>
-    `;
-    return div;
+    const configElement = document.createElement('div');
+    configElement.className = 'saved-config';
+
+    const configInfo = document.createElement('div');
+    configInfo.className = 'config-info';
+
+    const title = document.createElement('div');
+    title.className = 'config-title';
+    title.textContent = `${config.testapp} - Account: ${config.accountId}`;
+
+    const note = document.createElement('div');
+    note.className = 'config-note';
+    note.textContent = config.note || '';
+
+    const actions = document.createElement('div');
+    actions.className = 'config-actions';
+
+    const useButton = document.createElement('button');
+    useButton.textContent = 'Use';
+    useButton.onclick = () => impersonateSaved(index);
+
+    const deleteButton = document.createElement('button');
+    deleteButton.textContent = 'Delete';
+    deleteButton.className = 'delete-btn';
+    deleteButton.onclick = () => deleteConfig(index);
+
+    configInfo.appendChild(title);
+    if (config.note) {
+        configInfo.appendChild(note);
+    }
+    
+    actions.appendChild(useButton);
+    actions.appendChild(deleteButton);
+
+    configElement.appendChild(configInfo);
+    configElement.appendChild(actions);
+
+    return configElement;
 }
 
 // Handle new impersonation
 function handleImpersonation() {
     const accountId = document.getElementById('accountId').value.trim();
     const testapp = document.getElementById('testapp').value.trim();
+    const note = document.getElementById('note').value.trim();
     
     if (!accountId || !testapp) {
         alert('Please enter both Account ID and Testapp identifier');
         return;
     }
 
-    impersonate(testapp, accountId);
+    // Save configuration before impersonating
+    chrome.storage.sync.get(['configs'], (result) => {
+        const configs = result.configs || [];
+        
+        // Check if this configuration already exists
+        const exists = configs.some(config => 
+            config.accountId === accountId && config.testapp === testapp
+        );
+
+        // Only save if it's a new configuration
+        if (!exists) {
+            configs.push({ accountId, testapp, note });
+            chrome.storage.sync.set({ configs }, () => {
+                loadSavedConfigs();
+                // Clear input fields
+                document.getElementById('accountId').value = '';
+                document.getElementById('testapp').value = '';
+                document.getElementById('note').value = '';
+            });
+        }
+
+        // Perform impersonation
+        impersonate(testapp, accountId);
+    });
 }
 
 // Impersonate function
 function impersonate(testapp, accountId) {
     const url = `https://${testapp}.vwo.com/access?accountId=${accountId}`;
     chrome.tabs.create({ url });
-}
-
-// Save new configuration
-function saveConfiguration() {
-    const accountId = document.getElementById('accountId').value.trim();
-    const testapp = document.getElementById('testapp').value.trim();
-    const note = document.getElementById('note').value.trim();
-
-    if (!accountId || !testapp) {
-        alert('Please enter both Account ID and Testapp identifier');
-        return;
-    }
-
-    chrome.storage.sync.get(['configs'], (result) => {
-        const configs = result.configs || [];
-        configs.push({ accountId, testapp, note });
-        
-        chrome.storage.sync.set({ configs }, () => {
-            loadSavedConfigs();
-            // Clear input fields
-            document.getElementById('accountId').value = '';
-            document.getElementById('testapp').value = '';
-            document.getElementById('note').value = '';
-        });
-    });
 }
 
 // Impersonate using saved configuration
@@ -99,5 +147,23 @@ window.deleteConfig = function(index) {
         const configs = result.configs || [];
         configs.splice(index, 1);
         chrome.storage.sync.set({ configs }, loadSavedConfigs);
+    });
+}
+
+// Add this new function
+function filterConfigs(e) {
+    const searchTerm = e.target.value.toLowerCase();
+    const configs = document.querySelectorAll('.saved-config');
+    
+    configs.forEach(config => {
+        const accountId = config.querySelector('.config-title').textContent.toLowerCase();
+        const testapp = config.querySelector('.config-title').textContent.toLowerCase();
+        const note = config.querySelector('.config-note')?.textContent.toLowerCase() || '';
+        
+        const matches = accountId.includes(searchTerm) || 
+                       testapp.includes(searchTerm) || 
+                       note.includes(searchTerm);
+        
+        config.classList.toggle('hidden', !matches);
     });
 } 
