@@ -121,21 +121,30 @@ function handleImpersonation() {
         const configs = result.configs || [];
         
         // Check if this configuration already exists
-        const exists = configs.some(config => 
+        const existingIndex = configs.findIndex(config => 
             config.accountId === accountId && config.testapp === testapp
         );
 
-        // Only save if it's a new configuration
-        if (!exists) {
-            configs.push({ accountId, testapp, note });
-            chrome.storage.sync.set({ configs }, () => {
-                loadSavedConfigs();
-                // Clear input fields
-                document.getElementById('accountId').value = '';
-                document.getElementById('testapp').value = '';
-                document.getElementById('note').value = '';
-            });
+        if (existingIndex !== -1) {
+            // If exists, update timestamp and move to top
+            configs.splice(existingIndex, 1);
         }
+        
+        // Add new config at the beginning with timestamp
+        configs.unshift({ 
+            accountId, 
+            testapp, 
+            note, 
+            timestamp: Date.now() 
+        });
+
+        chrome.storage.sync.set({ configs }, () => {
+            loadSavedConfigs();
+            // Clear input fields
+            document.getElementById('accountId').value = '';
+            document.getElementById('testapp').value = '';
+            document.getElementById('note').value = '';
+        });
 
         // Perform impersonation
         impersonate(testapp, accountId);
@@ -224,7 +233,15 @@ function handleUpdate(index) {
 
     chrome.storage.sync.get(['configs'], (result) => {
         const configs = result.configs || [];
-        configs[index] = { accountId, testapp, note };
+        // Remove the old config
+        configs.splice(index, 1);
+        // Add updated config at the beginning
+        configs.unshift({ 
+            accountId, 
+            testapp, 
+            note, 
+            timestamp: Date.now() 
+        });
         
         chrome.storage.sync.set({ configs }, () => {
             // Reset the form
