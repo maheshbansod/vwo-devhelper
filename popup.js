@@ -154,7 +154,19 @@ function handleImpersonation() {
 // Impersonate function
 function impersonate(testapp, accountId) {
     const url = `https://${testapp}.vwo.com/access?accountId=${accountId}`;
-    chrome.tabs.create({ url });
+    
+    // Get the current active tab
+    chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
+        const currentTab = tabs[0];
+        // Check if current tab is on a VWO domain
+        if (currentTab.url && currentTab.url.includes('.vwo.com')) {
+            // Update the current tab's URL
+            chrome.tabs.update(currentTab.id, { url: url });
+        } else {
+            // Create a new tab if not on VWO domain
+            chrome.tabs.create({ url });
+        }
+    });
 }
 
 // Impersonate using saved configuration
