@@ -5,7 +5,8 @@
   "description": "Easily impersonate VWO accounts with saved configurations",
   "permissions": [
     "storage",
-    "tabs"
+    "tabs",
+    "clipboardRead"
   ],
   "action": {
     "default_popup": "popup.html",

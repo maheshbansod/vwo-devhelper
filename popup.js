@@ -34,8 +34,37 @@ document.addEventListener('DOMContentLoaded', () => {
             // Reset form if switching to new tab
             if (tabId === 'new') {
                 document.getElementById('accountId').value = '';
-                document.getElementById('testapp').value = '';
                 document.getElementById('note').value = '';
+                
+                // Try to read from clipboard and fill accountId if it's a number
+                navigator.clipboard.readText()
+                    .then(text => {
+                        const trimmedText = text.trim();
+                        if (/^\d+$/.test(trimmedText)) {
+                            document.getElementById('accountId').value = trimmedText;
+                        }
+                    })
+                    .catch((e) => {
+                        console.error('Error reading clipboard:', e);
+                    });
+
+                // Prefill testapp from current URL if on vwo.com domain
+                chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
+                    const currentTab = tabs[0];
+                    if (currentTab.url) {
+                        try {
+                            const currentUrl = new URL(currentTab.url);
+                            if (currentUrl.hostname.endsWith('.vwo.com')) {
+                                const subdomain = currentUrl.hostname.split('.')[0];
+                                document.getElementById('testapp').value = subdomain;
+                            } else {
+                                document.getElementById('testapp').value = '';
+                            }
+                        } catch (e) {
+                            document.getElementById('testapp').value = '';
+                        }
+                    }
+                });
                 
                 const impersonateBtn = document.getElementById('impersonate');
                 impersonateBtn.textContent = 'Impersonate';
