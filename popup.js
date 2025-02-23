@@ -173,13 +173,30 @@ function handleImpersonation() {
 
 // Impersonate function
 function impersonate(testapp, accountId) {
-    const url = `https://${testapp}.vwo.com/access?accountId=${accountId}`;
-    
     // Get the current active tab
     chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
         const currentTab = tabs[0];
+        
+        // Determine the domain and port to use
+        let domain = testapp;
+        let port = '';
+        
+        if (currentTab.url) {
+            try {
+                const currentUrl = new URL(currentTab.url);
+                if (currentUrl.hostname === 'local.vwo.com') {
+                    domain = 'local';
+                    port = currentUrl.port ? `:${currentUrl.port}` : '';
+                }
+            } catch (e) {
+                console.error('Invalid URL:', e);
+            }
+        }
+        
+        const url = `https://${domain}.vwo.com${port}/access?accountId=${accountId}`;
+        
         // Check if current tab is on a VWO domain
-        if (currentTab.url && currentTab.url.includes('.vwo.com')) {
+        if (currentTab.url && new URL(currentTab.url).hostname.endsWith('.vwo.com')) {
             // Update the current tab's URL
             chrome.tabs.update(currentTab.id, { url: url });
         } else {
