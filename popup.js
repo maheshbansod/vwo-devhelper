@@ -189,6 +189,16 @@ window.impersonateSaved = function(index) {
         const configs = result.configs || [];
         const config = configs[index];
         if (config) {
+            // Remove the config from its current position
+            configs.splice(index, 1);
+            // Update timestamp and add to the beginning
+            config.timestamp = Date.now();
+            configs.unshift(config);
+            
+            // Save the updated configs and reload the list
+            chrome.storage.sync.set({ configs }, loadSavedConfigs);
+            
+            // Perform the impersonation
             impersonate(config.testapp, config.accountId);
         }
     });
