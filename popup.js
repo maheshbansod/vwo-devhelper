@@ -1,6 +1,12 @@
+const currentVersion = '1.0';
+const versionCheckUrl = 'https://maheshbansod.github.io/vwo-devhelper/version.json';
+
 document.addEventListener('DOMContentLoaded', () => {
     // Load saved configurations
     loadSavedConfigs();
+
+    // Add version check with 5 second delay
+    setTimeout(checkVersion, 5000);
 
     // Add event listener for impersonate button
     document.getElementById('impersonate').addEventListener('click', handleImpersonation);
@@ -296,4 +302,18 @@ function handleUpdate(index) {
             loadSavedConfigs();
         });
     });
+}
+
+// Add new version check function
+function checkVersion() {
+    fetch(versionCheckUrl)
+        .then(response => response.json())
+        .then(data => {
+            if (data.version && data.version !== currentVersion) {
+                document.getElementById('update-available-message').style.display = 'block';
+            }
+        })
+        .catch(error => {
+            console.error('Error checking version:', error);
+        });
 } 
