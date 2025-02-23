@@ -89,6 +89,11 @@ function loadSavedConfigs() {
             const configElement = createConfigElement(config, index);
             container.appendChild(configElement);
         });
+
+        // Switch to new tab if no configs exist
+        if (configs.length === 0) {
+            document.querySelector('[data-tab="new"]').click();
+        }
     });
 }
 
